@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="@dimen/movie_item_height"
+    android:foreground="?attr/selectableItemBackground">
+
+    <ImageView
+        android:id="@+id/movie_item_image"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="fitXY" />
+
+    <LinearLayout
+        android:id="@+id/movie_description_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:padding="@dimen/keyline_1"
+        android:background="#5000"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/movie_item_rating"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/onPrimary" />
+
+        <TextView
+            android:id="@+id/movie_item_popularity"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/onPrimary" />
+
+    </LinearLayout>
+
+</FrameLayout>
