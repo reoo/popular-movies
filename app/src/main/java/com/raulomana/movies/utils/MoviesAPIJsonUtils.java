@@ -3,6 +3,7 @@ package com.raulomana.movies.utils;
 import android.support.annotation.NonNull;
 
 import com.raulomana.movies.model.Movie;
+import com.raulomana.movies.model.Video;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -12,6 +13,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MoviesAPIJsonUtils {
+    private static final String VIDEO_TYPE_TRAILER = "Trailer";
+
+    private static final String VIDEO_SITE_YOUTUBE = "YouTube";
+    private static final String VIDEO_SITE_VIMEO = "Vimeo";
 
     @NonNull
     public static List<Movie> getMoviesFromJson(@NonNull String json) throws JSONException {
@@ -105,7 +110,33 @@ public class MoviesAPIJsonUtils {
             runtime = jsonObject.getInt("runtime");
         }
 
-        return new Movie(id, title, description, image, rating, popularity, releaseDate, runtime);
+        List<Video> videos = new ArrayList<>();
+        if(jsonObject.has("videos")) {
+            JSONObject videosJSON = jsonObject.getJSONObject("videos");
+            if(videosJSON.has("results")) {
+                JSONArray results = videosJSON.getJSONArray("results");
+                for(int i = 0; i < results.length(); i++) {
+                    JSONObject item = results.getJSONObject(i);
+                    if(item.has("type") && item.has("key") && item.has("site") && item.has("name")) {
+                        String type = item.getString("type");
+                        if(VIDEO_TYPE_TRAILER.equals(type)) {
+                            String key = item.getString("key");
+                            String site = item.getString("site");
+                            String name = item.getString("name");
+                            String url = null;
+                            if(VIDEO_SITE_YOUTUBE.equals(site)) {
+                                url = "https://www.youtube.com/watch?v=" + key;
+                            } else {
+                                url = "https://vimeo.com/" + key;
+                            }
+                            videos.add(new Video(name, url, site, type));
+                        }
+                    }
+                }
+            }
+        }
+
+        return new Movie(id, title, description, image, rating, popularity, releaseDate, runtime, videos);
     }
 
 

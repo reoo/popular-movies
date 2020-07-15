@@ -5,6 +5,8 @@ import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
+import java.util.List;
+
 public class Movie implements Parcelable {
     int id;
     @NonNull
@@ -19,8 +21,10 @@ public class Movie implements Parcelable {
     private String releaseDate;
     @Nullable
     private Integer runtime;
+    @NonNull
+    private List<Video> videos;
 
-    public Movie(int id, @NonNull String title, @Nullable String description, @Nullable String image, double rating, double popularity, @NonNull String releaseDate, @Nullable Integer runtime) {
+    public Movie(int id, @NonNull String title, @Nullable String description, @Nullable String image, double rating, double popularity, @NonNull String releaseDate, @Nullable Integer runtime, @NonNull List<Video> videos) {
         this.id = id;
         this.title = title;
         this.description = description;
@@ -29,6 +33,7 @@ public class Movie implements Parcelable {
         this.popularity = popularity;
         this.releaseDate = releaseDate;
         this.runtime = runtime;
+        this.videos = videos;
     }
 
     protected Movie(Parcel in) {
@@ -44,6 +49,7 @@ public class Movie implements Parcelable {
         } else {
             runtime = in.readInt();
         }
+        videos = in.createTypedArrayList(Video.CREATOR);
     }
 
     public static final Creator<Movie> CREATOR = new Creator<Movie>() {
@@ -127,6 +133,15 @@ public class Movie implements Parcelable {
         this.runtime = runtime;
     }
 
+    @NonNull
+    public List<Video> getVideos() {
+        return videos;
+    }
+
+    public void setVideos(@NonNull List<Video> videos) {
+        this.videos = videos;
+    }
+
     @Override
     public int describeContents() {
         return 0;
@@ -147,5 +162,6 @@ public class Movie implements Parcelable {
             dest.writeByte((byte) 1);
             dest.writeInt(runtime);
         }
+        dest.writeTypedList(videos);
     }
 }

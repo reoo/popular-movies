@@ -20,8 +20,6 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
-import com.raulomana.movies.BuildConfig;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
@@ -41,6 +39,7 @@ public final class NetworkUtils {
     public final static String TOP_RATED_TYPE = "top_rated";
 
     private final static String API_KEY_PARAM = "api_key";
+    public static final String VIDEOS_PARAM = "append_to_response";
     private final static String PAGE_PARAM = "page";
 
     @Nullable
@@ -67,6 +66,7 @@ public final class NetworkUtils {
         Uri builtUri = Uri.parse(MOVIES_API_BASE_URL).buildUpon()
                 .path("/3/movie/" + movieId)
                 .appendQueryParameter(API_KEY_PARAM, apiKey)
+                .appendQueryParameter(VIDEOS_PARAM, "videos")
                 .build();
 
         URL url = null;

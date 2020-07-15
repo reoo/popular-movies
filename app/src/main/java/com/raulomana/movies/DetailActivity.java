@@ -8,6 +8,7 @@ import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 import android.widget.ViewAnimator;
 
 import com.raulomana.movies.model.Movie;
@@ -78,6 +79,10 @@ public class DetailActivity extends AppCompatActivity {
                 .load(movie.getImage())
                 .placeholder(R.drawable.place_holder)
                 .into(image);
+
+        if(BuildConfig.DEBUG) {
+            Toast.makeText(this, "trailers: " + movie.getVideos().size(), Toast.LENGTH_SHORT).show();
+        }
     }
 
     public class FetchMovieTask extends AsyncTask<Integer, Void, Movie> {
