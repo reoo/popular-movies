@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MoviesAPIJsonUtils {
+    // more about the videos spec on https://developers.themoviedb.org/3/movies/get-movie-videos
     private static final String VIDEO_TYPE_TRAILER = "Trailer";
 
     private static final String VIDEO_SITE_YOUTUBE = "YouTube";
@@ -28,44 +29,6 @@ public class MoviesAPIJsonUtils {
                 JSONObject item = results.getJSONObject(i);
                 Movie movie = MoviesAPIJsonUtils.getMovieFromJson(item.toString());
                 movies.add(movie);
-
-//                int id = 0;
-//                if(item.has("id")) {
-//                    id = item.getInt("id");
-//                }
-//                String title = "";
-//                if(item.has("title")) {
-//                    title = item.getString("title");
-//                }
-//                String description = "";
-//                if(item.has("overview")) {
-//                    description = item.getString("overview");
-//                }
-//                String image = null;
-//                if(item.has("poster_path")) {
-//                    String path = item.getString("poster_path");
-//                    if(path != null) {
-//                        image = NetworkUtils.MOVIES_IMAGES_BASE_URL + path;
-//                    }
-//                }
-//                double rating = 0.0f;
-//                if(item.has("vote_average")) {
-//                    rating = item.getDouble("vote_average");
-//                }
-//                double popularity = 0.0f;
-//                if(item.has("popularity")) {
-//                    popularity = item.getDouble("popularity");
-//                }
-//                String releaseDate = "";
-//                if(item.has("release_date")) {
-//                    releaseDate = item.getString("release_date");
-//                }
-//                Integer runtime = null;
-//                if(item.has("runtime")) {
-//                    runtime = item.getInt("runtime");
-//                }
-//
-//                movies.add(new Movie(id, title, description, image, rating, popularity, releaseDate, runtime));
             }
         }
         return movies;
