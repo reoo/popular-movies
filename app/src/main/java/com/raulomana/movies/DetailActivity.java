@@ -1,6 +1,7 @@
 package com.raulomana.movies;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -13,6 +14,7 @@ import android.widget.Toast;
 import android.widget.ViewAnimator;
 
 import com.raulomana.movies.model.Movie;
+import com.raulomana.movies.model.Video;
 import com.raulomana.movies.utils.DateUtils;
 import com.raulomana.movies.utils.MoviesAPIJsonUtils;
 import com.raulomana.movies.utils.NetworkUtils;
@@ -21,7 +23,7 @@ import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.Locale;
 
-public class DetailActivity extends AppCompatActivity {
+public class DetailActivity extends AppCompatActivity implements MovieDetailAdapter.OnDetailClickListener {
 
     private static final int VA_INDEX_CONTENT_STATE = 0;
     private static final int VA_INDEX_LOADING_STATE = 1;
@@ -58,10 +60,24 @@ public class DetailActivity extends AppCompatActivity {
     private void bindMovie(@NonNull Movie movie) {
         title.setText(movie.getTitle());
         itemsList.setLayoutManager(new LinearLayoutManager(this));
-        itemsList.setAdapter(new MovieDetailAdapter(movie));
+        itemsList.setAdapter(new MovieDetailAdapter(movie, this));
 
         if(BuildConfig.DEBUG) {
             Toast.makeText(this, "trailers: " + movie.getVideos().size(), Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    @Override
+    public void onFavoriteClick(@NonNull Movie movie) {
+        Toast.makeText(this, "coming soon", Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onVideoClick(@NonNull Movie movie, @NonNull Video video) {
+        Uri uri = Uri.parse(video.getUrl());
+        Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+        if(intent.resolveActivity(getPackageManager()) != null) {
+            startActivity(intent);
         }
     }
 

@@ -1,43 +1,59 @@
 package com.raulomana.movies;
 
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v7.widget.RecyclerView;
+import android.util.SparseArray;
+import android.util.SparseIntArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.raulomana.movies.model.Movie;
-import com.raulomana.movies.utils.DateUtils;
+import com.raulomana.movies.model.Video;
 import com.squareup.picasso.Picasso;
 
-import java.text.SimpleDateFormat;
-import java.util.Locale;
+import java.util.List;
 
 public class MovieDetailAdapter extends RecyclerView.Adapter<MovieDetailAdapter.MovieDetailHolder> {
     @NonNull
     private Movie movie;
+    @Nullable
+    private OnDetailClickListener listener;
     @NonNull
-    private String userFriendlyReleaseDate;
+    private SparseIntArray positionToLayout;
+    @NonNull
+    private SparseArray<Object> positionToModel;
 
-    interface OnMovieClickListener {
-        void onMovieClick(@NonNull Movie movie);
+    interface OnDetailClickListener {
+        void onFavoriteClick(@NonNull Movie movie);
+        void onVideoClick(@NonNull Movie movie, @NonNull Video video);
     }
 
-    public MovieDetailAdapter(@NonNull Movie movie) {
+    public MovieDetailAdapter(@NonNull Movie movie, @Nullable OnDetailClickListener listener) {
         this.movie = movie;
-        SimpleDateFormat releaseDateInputFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
-        SimpleDateFormat releaseDateOutputFormat = new SimpleDateFormat("yyyy", Locale.getDefault());
-        this.userFriendlyReleaseDate = DateUtils.parseThenFormat(movie.getReleaseDate(), releaseDateInputFormat, releaseDateOutputFormat);
+        this.listener = listener;
+        positionToLayout = new SparseIntArray();
+        positionToModel = new SparseArray<>();
+        int currentPosition = 0;
+        positionToLayout.put(currentPosition++, R.layout.detail_item_header);
+        positionToLayout.put(currentPosition++, R.layout.detail_item_description);
+        List<Video> videos = this.movie.getVideos();
+        if(!videos.isEmpty()) {
+            positionToLayout.put(currentPosition++, R.layout.detail_item_videos_header);
+            for(Video item: videos) {
+                positionToLayout.put(currentPosition, R.layout.detail_item_video_item);
+                positionToModel.put(currentPosition++, item);
+            }
+        }
     }
 
     @Override
     public int getItemViewType(int position) {
-        if(position == 0) {
-            return R.layout.detail_item_header;
-        }
-        return R.layout.detail_item_description;
+        return positionToLayout.get(position);
     }
 
     @NonNull
@@ -49,16 +65,26 @@ public class MovieDetailAdapter extends RecyclerView.Adapter<MovieDetailAdapter.
 
     @Override
     public void onBindViewHolder(@NonNull MovieDetailHolder holder, int position) {
-        if(position == 0) {
+        int viewType = positionToLayout.get(position);
+        if(R.layout.detail_item_header == viewType) {
             holder.bindHeader(movie);
-        } else {
-            holder.bindDescription(movie.getDescription());
+        } else if(R.layout.detail_item_description == viewType) {
+            if(movie.getDescription() != null) {
+                holder.bindDescription(movie.getDescription());
+            }
+        } else if(R.layout.detail_item_videos_header == viewType) {
+            // nothing to do, everything is done via xml
+        } else if(R.layout.detail_item_video_item == viewType) {
+            Object video = positionToModel.get(position);
+            if(video instanceof Video) {
+                holder.bindVideo((Video) video);
+            }
         }
     }
 
     @Override
     public int getItemCount() {
-        return 2;
+        return positionToLayout.size();
     }
 
     class MovieDetailHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
@@ -70,23 +96,37 @@ public class MovieDetailAdapter extends RecyclerView.Adapter<MovieDetailAdapter.
         private TextView duration;
         @NonNull
         private TextView rating;
+        @NonNull
+        private Button favoriteAction;
 
         @NonNull
         private TextView description;
 
-        public MovieDetailHolder(@NonNull View itemView) {
+        /**
+         * Video
+         */
+        @NonNull
+        private View videoContainer;
+        @NonNull
+        private TextView videoName;
+
+        private MovieDetailHolder(@NonNull View itemView) {
             super(itemView);
             image = itemView.findViewById(R.id.detail_item_image);
             releaseDate = itemView.findViewById(R.id.detail_item_release_date);
             duration = itemView.findViewById(R.id.detail_item_duration);
             rating = itemView.findViewById(R.id.detail_item_rating);
+            favoriteAction = itemView.findViewById(R.id.detail_item_favorite_action);
 
             description = itemView.findViewById(R.id.detail_item_description);
+
+            videoContainer = itemView.findViewById(R.id.detail_item_video_item_container);
+            videoName = itemView.findViewById(R.id.detail_item_video_item_name);
 
             itemView.setOnClickListener(this);
         }
 
-        public void bindHeader(@NonNull Movie movie) {
+        private void bindHeader(@NonNull Movie movie) {
             if(BuildConfig.DEBUG) {
                 Picasso.get().setIndicatorsEnabled(true);
             }
@@ -96,22 +136,38 @@ public class MovieDetailAdapter extends RecyclerView.Adapter<MovieDetailAdapter.
                     .placeholder(R.drawable.place_holder)
                     .into(image);
 
-            releaseDate.setText(userFriendlyReleaseDate);
+            releaseDate.setText(movie.getDisplayReleaseDate());
             rating.setText(rating.getResources().getString(R.string.detail_rating, movie.getRating()));
             if(movie.getRuntime() != null) {
                 duration.setText(duration.getResources().getString(R.string.detail_duration, movie.getRuntime()));
             }
+            favoriteAction.setOnClickListener(this);
         }
 
-        public void bindDescription(@NonNull String description) {
+        private void bindDescription(@NonNull String description) {
             this.description.setText(description);
+        }
+
+        private void bindVideo(@NonNull final Video video) {
+            this.videoName.setText(video.getName());
+            this.videoContainer.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if(listener != null) {
+                        listener.onVideoClick(movie, video);
+                    }
+                }
+            });
         }
 
         @Override
         public void onClick(View v) {
-//            if(listener != null) {
-//                listener.onMovieClick(movies.get(getAdapterPosition()));
-//            }
+            int id = v.getId();
+            if(R.id.detail_item_favorite_action == id) {
+                if(listener != null) {
+                    listener.onFavoriteClick(movie);
+                }
+            }
         }
     }
 

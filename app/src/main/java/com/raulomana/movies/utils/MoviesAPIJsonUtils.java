@@ -9,8 +9,10 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 public class MoviesAPIJsonUtils {
     // more about the videos spec on https://developers.themoviedb.org/3/movies/get-movie-videos
@@ -65,8 +67,12 @@ public class MoviesAPIJsonUtils {
             popularity = jsonObject.getDouble("popularity");
         }
         String releaseDate = "";
+        String displayReleaseDate = "";
         if(jsonObject.has("release_date")) {
             releaseDate = jsonObject.getString("release_date");
+            final SimpleDateFormat releaseDateInputFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+            final SimpleDateFormat releaseDateOutputFormat = new SimpleDateFormat("yyyy", Locale.getDefault());
+            displayReleaseDate = DateUtils.parseThenFormat(releaseDate, releaseDateInputFormat, releaseDateOutputFormat);
         }
         Integer runtime = null;
         if(jsonObject.has("runtime")) {
@@ -99,7 +105,7 @@ public class MoviesAPIJsonUtils {
             }
         }
 
-        return new Movie(id, title, description, image, rating, popularity, releaseDate, runtime, videos);
+        return new Movie(id, title, description, image, rating, popularity, releaseDate, displayReleaseDate, runtime, videos);
     }
 
 

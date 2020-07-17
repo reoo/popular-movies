@@ -19,12 +19,14 @@ public class Movie implements Parcelable {
     private double popularity;
     @NonNull
     private String releaseDate;
+    @NonNull
+    private String displayReleaseDate;
     @Nullable
     private Integer runtime;
     @NonNull
     private List<Video> videos;
 
-    public Movie(int id, @NonNull String title, @Nullable String description, @Nullable String image, double rating, double popularity, @NonNull String releaseDate, @Nullable Integer runtime, @NonNull List<Video> videos) {
+    public Movie(int id, @NonNull String title, @Nullable String description, @Nullable String image, double rating, double popularity, @NonNull String releaseDate, @NonNull String displayReleaseDate, @Nullable Integer runtime, @NonNull List<Video> videos) {
         this.id = id;
         this.title = title;
         this.description = description;
@@ -32,6 +34,7 @@ public class Movie implements Parcelable {
         this.rating = rating;
         this.popularity = popularity;
         this.releaseDate = releaseDate;
+        this.displayReleaseDate = displayReleaseDate;
         this.runtime = runtime;
         this.videos = videos;
     }
@@ -44,6 +47,7 @@ public class Movie implements Parcelable {
         rating = in.readDouble();
         popularity = in.readDouble();
         releaseDate = in.readString();
+        displayReleaseDate = in.readString();
         if (in.readByte() == 0) {
             runtime = null;
         } else {
@@ -124,6 +128,15 @@ public class Movie implements Parcelable {
         this.releaseDate = releaseDate;
     }
 
+    @NonNull
+    public String getDisplayReleaseDate() {
+        return displayReleaseDate;
+    }
+
+    public void setDisplayReleaseDate(@NonNull String displayReleaseDate) {
+        this.displayReleaseDate = displayReleaseDate;
+    }
+
     @Nullable
     public Integer getRuntime() {
         return runtime;
@@ -156,6 +169,7 @@ public class Movie implements Parcelable {
         dest.writeDouble(rating);
         dest.writeDouble(popularity);
         dest.writeString(releaseDate);
+        dest.writeString(displayReleaseDate);
         if (runtime == null) {
             dest.writeByte((byte) 0);
         } else {

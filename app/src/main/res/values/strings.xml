@@ -6,4 +6,6 @@
     <string name="detail_page_title">Movie Detail</string>
     <string name="detail_duration">%dmin</string>
     <string name="detail_rating">%.1f/10</string>
+    <string name="detail_item_favorite_action">Mark as Favorite</string>
+    <string name="detail_item_videos_header_title">Videos</string>
 </resources>
