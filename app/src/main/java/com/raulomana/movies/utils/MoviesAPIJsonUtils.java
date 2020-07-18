@@ -3,6 +3,7 @@ package com.raulomana.movies.utils;
 import android.support.annotation.NonNull;
 
 import com.raulomana.movies.model.Movie;
+import com.raulomana.movies.model.Review;
 import com.raulomana.movies.model.Video;
 
 import org.json.JSONArray;
@@ -105,7 +106,25 @@ public class MoviesAPIJsonUtils {
             }
         }
 
-        return new Movie(id, title, description, image, rating, popularity, releaseDate, displayReleaseDate, runtime, videos, true);
+        List<Review> reviews = new ArrayList<>();
+        if(jsonObject.has("reviews")) {
+            JSONObject videosJSON = jsonObject.getJSONObject("reviews");
+            if(videosJSON.has("results")) {
+                JSONArray results = videosJSON.getJSONArray("results");
+                for(int i = 0; i < results.length(); i++) {
+                    JSONObject item = results.getJSONObject(i);
+                    if(item.has("author") && item.has("content") && item.has("id") && item.has("url")) {
+                        String author = item.getString("author");
+                        String content = item.getString("content");
+                        String reviewId = item.getString("id");
+                        String url = item.getString("url");
+                        reviews.add(new Review(reviewId, author, content, url));
+                    }
+                }
+            }
+        }
+
+        return new Movie(id, title, description, image, rating, popularity, releaseDate, displayReleaseDate, runtime, videos, reviews, true);
     }
 
 

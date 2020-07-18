@@ -17,13 +17,10 @@ import com.raulomana.movies.db.AppDataBase;
 import com.raulomana.movies.model.Movie;
 import com.raulomana.movies.model.Video;
 import com.raulomana.movies.utils.AppExecutors;
-import com.raulomana.movies.utils.DateUtils;
 import com.raulomana.movies.utils.MoviesAPIJsonUtils;
 import com.raulomana.movies.utils.NetworkUtils;
 
 import java.net.URL;
-import java.text.SimpleDateFormat;
-import java.util.Locale;
 
 public class DetailActivity extends AppCompatActivity implements MovieDetailAdapter.OnDetailClickListener {
 

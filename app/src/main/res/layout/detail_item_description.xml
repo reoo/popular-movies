@@ -14,6 +14,6 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        style="@style/TextAppearance.AppCompat.Body1" />
+        style="@style/BodyStyle" />
 
 </android.support.constraint.ConstraintLayout>

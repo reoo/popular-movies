@@ -13,6 +13,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.raulomana.movies.model.Movie;
+import com.raulomana.movies.model.Review;
 import com.raulomana.movies.model.Video;
 import com.squareup.picasso.Picasso;
 
@@ -49,6 +50,14 @@ public class MovieDetailAdapter extends RecyclerView.Adapter<MovieDetailAdapter.
                 positionToModel.put(currentPosition++, item);
             }
         }
+        List<Review> reviews = this.movie.getReviews();
+        if(!reviews.isEmpty()) {
+            positionToLayout.put(currentPosition++, R.layout.detail_item_reviews_header);
+            for(Review item: reviews) {
+                positionToLayout.put(currentPosition, R.layout.detail_item_review);
+                positionToModel.put(currentPosition++, item);
+            }
+        }
     }
 
     @Override
@@ -78,6 +87,13 @@ public class MovieDetailAdapter extends RecyclerView.Adapter<MovieDetailAdapter.
             Object video = positionToModel.get(position);
             if(video instanceof Video) {
                 holder.bindVideo((Video) video);
+            }
+        } else if(R.layout.detail_item_reviews_header == viewType) {
+            // nothing to do, everything is done via xml
+        } else if(R.layout.detail_item_review == viewType) {
+            Object review = positionToModel.get(position);
+            if(review instanceof Review) {
+                holder.bindReview((Review) review);
             }
         }
     }
@@ -110,6 +126,11 @@ public class MovieDetailAdapter extends RecyclerView.Adapter<MovieDetailAdapter.
         @NonNull
         private TextView videoName;
 
+        @NonNull
+        private TextView reviewAuthor;
+        @NonNull
+        private TextView reviewContent;
+
         private MovieDetailHolder(@NonNull View itemView) {
             super(itemView);
             image = itemView.findViewById(R.id.detail_item_image);
@@ -122,6 +143,9 @@ public class MovieDetailAdapter extends RecyclerView.Adapter<MovieDetailAdapter.
 
             videoContainer = itemView.findViewById(R.id.detail_item_video_item_container);
             videoName = itemView.findViewById(R.id.detail_item_video_item_name);
+
+            reviewAuthor = itemView.findViewById(R.id.detail_item_review_author);
+            reviewContent = itemView.findViewById(R.id.detail_item_review_content);
 
             itemView.setOnClickListener(this);
         }
@@ -160,6 +184,11 @@ public class MovieDetailAdapter extends RecyclerView.Adapter<MovieDetailAdapter.
                     }
                 }
             });
+        }
+
+        private void bindReview(@NonNull final Review review) {
+            reviewAuthor.setText(review.getAuthor());
+            reviewContent.setText(review.getContent());
         }
 
         @Override

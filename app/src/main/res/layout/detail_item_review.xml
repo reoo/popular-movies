@@ -1,28 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
 <android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:paddingStart="@dimen/keyline_4"
-    android:paddingEnd="@dimen/keyline_4">
-
-    <View
-        android:layout_width="0dp"
-        android:layout_height="1dp"
-        android:background="@color/colorLineIndicator"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+    android:padding="@dimen/keyline_4">
 
     <TextView
-        android:id="@+id/detail_item_videos_header_title"
+        android:id="@+id/detail_item_review_author"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:padding="@dimen/keyline_2"
-        android:text="@string/detail_item_videos_header_title"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        style="@style/SubtitleStyle" />
+        style="@style/MediumStyle"
+        tools:text="Author goes here" />
+
+    <TextView
+        android:id="@+id/detail_item_review_content"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/keyline_2"
+        app:layout_constraintTop_toBottomOf="@id/detail_item_review_author"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        style="@style/BodyStyle"
+        tools:text="Content goes here" />
 
 </android.support.constraint.ConstraintLayout>

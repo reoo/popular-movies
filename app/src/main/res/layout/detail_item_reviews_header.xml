@@ -15,11 +15,11 @@
         app:layout_constraintEnd_toEndOf="parent" />
 
     <TextView
-        android:id="@+id/detail_item_videos_header_title"
+        android:id="@+id/detail_item_reviews_header_title"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:padding="@dimen/keyline_2"
-        android:text="@string/detail_item_videos_header_title"
+        android:text="@string/detail_item_reviews_header_title"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"

@@ -31,6 +31,9 @@ public class Movie implements Parcelable {
     @Ignore
     @NonNull
     private List<Video> videos;
+    @Ignore
+    @NonNull
+    private List<Review> reviews;
     private boolean favorite;
 
     public Movie(int id, @NonNull String title, @Nullable String description, @Nullable String image, double rating, double popularity, @NonNull String releaseDate, @NonNull String displayReleaseDate, @Nullable Integer runtime, boolean favorite) {
@@ -46,7 +49,7 @@ public class Movie implements Parcelable {
         this.favorite = favorite;
     }
 
-    public Movie(int id, @NonNull String title, @Nullable String description, @Nullable String image, double rating, double popularity, @NonNull String releaseDate, @NonNull String displayReleaseDate, @Nullable Integer runtime, @NonNull List<Video> videos, boolean favorite) {
+    public Movie(int id, @NonNull String title, @Nullable String description, @Nullable String image, double rating, double popularity, @NonNull String releaseDate, @NonNull String displayReleaseDate, @Nullable Integer runtime, @NonNull List<Video> videos, @NonNull List<Review> reviews, boolean favorite) {
         this.id = id;
         this.title = title;
         this.description = description;
@@ -57,6 +60,7 @@ public class Movie implements Parcelable {
         this.displayReleaseDate = displayReleaseDate;
         this.runtime = runtime;
         this.videos = videos;
+        this.reviews = reviews;
         this.favorite = favorite;
     }
 
@@ -75,6 +79,7 @@ public class Movie implements Parcelable {
             runtime = in.readInt();
         }
         videos = in.createTypedArrayList(Video.CREATOR);
+        reviews = in.createTypedArrayList(Review.CREATOR);
         favorite = in.readByte() != 0;
     }
 
@@ -89,6 +94,32 @@ public class Movie implements Parcelable {
             return new Movie[size];
         }
     };
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeInt(id);
+        dest.writeString(title);
+        dest.writeString(description);
+        dest.writeString(image);
+        dest.writeDouble(rating);
+        dest.writeDouble(popularity);
+        dest.writeString(releaseDate);
+        dest.writeString(displayReleaseDate);
+        if (runtime == null) {
+            dest.writeByte((byte) 0);
+        } else {
+            dest.writeByte((byte) 1);
+            dest.writeInt(runtime);
+        }
+        dest.writeTypedList(videos);
+        dest.writeTypedList(reviews);
+        dest.writeByte((byte) (favorite ? 1 : 0));
+    }
 
     public int getId() {
         return id;
@@ -177,6 +208,15 @@ public class Movie implements Parcelable {
         this.videos = videos;
     }
 
+    @NonNull
+    public List<Review> getReviews() {
+        return reviews;
+    }
+
+    public void setReviews(@NonNull List<Review> reviews) {
+        this.reviews = reviews;
+    }
+
     public boolean isFavorite() {
         return favorite;
     }
@@ -185,28 +225,7 @@ public class Movie implements Parcelable {
         this.favorite = favorite;
     }
 
-    @Override
-    public int describeContents() {
-        return 0;
-    }
-
-    @Override
-    public void writeToParcel(Parcel dest, int flags) {
-        dest.writeInt(id);
-        dest.writeString(title);
-        dest.writeString(description);
-        dest.writeString(image);
-        dest.writeDouble(rating);
-        dest.writeDouble(popularity);
-        dest.writeString(releaseDate);
-        dest.writeString(displayReleaseDate);
-        if (runtime == null) {
-            dest.writeByte((byte) 0);
-        } else {
-            dest.writeByte((byte) 1);
-            dest.writeInt(runtime);
-        }
-        dest.writeTypedList(videos);
-        dest.writeByte((byte) (favorite ? 1 : 0));
+    public static Creator<Movie> getCREATOR() {
+        return CREATOR;
     }
 }
