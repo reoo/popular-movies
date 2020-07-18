@@ -141,7 +141,9 @@ public class MovieDetailAdapter extends RecyclerView.Adapter<MovieDetailAdapter.
             if(movie.getRuntime() != null) {
                 duration.setText(duration.getResources().getString(R.string.detail_duration, movie.getRuntime()));
             }
+
             favoriteAction.setOnClickListener(this);
+            favoriteAction.setSelected(movie.isFavorite());
         }
 
         private void bindDescription(@NonNull String description) {

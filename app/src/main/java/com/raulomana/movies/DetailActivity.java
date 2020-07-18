@@ -13,8 +13,10 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ViewAnimator;
 
+import com.raulomana.movies.db.AppDataBase;
 import com.raulomana.movies.model.Movie;
 import com.raulomana.movies.model.Video;
+import com.raulomana.movies.utils.AppExecutors;
 import com.raulomana.movies.utils.DateUtils;
 import com.raulomana.movies.utils.MoviesAPIJsonUtils;
 import com.raulomana.movies.utils.NetworkUtils;
@@ -57,14 +59,16 @@ public class DetailActivity extends AppCompatActivity implements MovieDetailAdap
         new FetchMovieTask().execute(movie.getId());
     }
 
-    private void bindMovie(@NonNull Movie movie) {
+    private void bindMovie(@NonNull final Movie movie) {
         title.setText(movie.getTitle());
         itemsList.setLayoutManager(new LinearLayoutManager(this));
         itemsList.setAdapter(new MovieDetailAdapter(movie, this));
-
-        if(BuildConfig.DEBUG) {
-            Toast.makeText(this, "trailers: " + movie.getVideos().size(), Toast.LENGTH_SHORT).show();
-        }
+        AppExecutors.getInstance().diskIO().execute(new Runnable() {
+            @Override
+            public void run() {
+                AppDataBase.getInstance(DetailActivity.this).movieDao().save(movie);
+            }
+        });
     }
 
     @Override

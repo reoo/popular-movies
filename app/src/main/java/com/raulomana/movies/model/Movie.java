@@ -1,5 +1,8 @@
 package com.raulomana.movies.model;
 
+import android.arch.persistence.room.Entity;
+import android.arch.persistence.room.Ignore;
+import android.arch.persistence.room.PrimaryKey;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.support.annotation.NonNull;
@@ -7,7 +10,9 @@ import android.support.annotation.Nullable;
 
 import java.util.List;
 
+@Entity(tableName = "movie")
 public class Movie implements Parcelable {
+    @PrimaryKey
     int id;
     @NonNull
     private String title;
@@ -23,10 +28,25 @@ public class Movie implements Parcelable {
     private String displayReleaseDate;
     @Nullable
     private Integer runtime;
+    @Ignore
     @NonNull
     private List<Video> videos;
+    private boolean favorite;
 
-    public Movie(int id, @NonNull String title, @Nullable String description, @Nullable String image, double rating, double popularity, @NonNull String releaseDate, @NonNull String displayReleaseDate, @Nullable Integer runtime, @NonNull List<Video> videos) {
+    public Movie(int id, @NonNull String title, @Nullable String description, @Nullable String image, double rating, double popularity, @NonNull String releaseDate, @NonNull String displayReleaseDate, @Nullable Integer runtime, boolean favorite) {
+        this.id = id;
+        this.title = title;
+        this.description = description;
+        this.image = image;
+        this.rating = rating;
+        this.popularity = popularity;
+        this.releaseDate = releaseDate;
+        this.displayReleaseDate = displayReleaseDate;
+        this.runtime = runtime;
+        this.favorite = favorite;
+    }
+
+    public Movie(int id, @NonNull String title, @Nullable String description, @Nullable String image, double rating, double popularity, @NonNull String releaseDate, @NonNull String displayReleaseDate, @Nullable Integer runtime, @NonNull List<Video> videos, boolean favorite) {
         this.id = id;
         this.title = title;
         this.description = description;
@@ -37,6 +57,7 @@ public class Movie implements Parcelable {
         this.displayReleaseDate = displayReleaseDate;
         this.runtime = runtime;
         this.videos = videos;
+        this.favorite = favorite;
     }
 
     protected Movie(Parcel in) {
@@ -54,6 +75,7 @@ public class Movie implements Parcelable {
             runtime = in.readInt();
         }
         videos = in.createTypedArrayList(Video.CREATOR);
+        favorite = in.readByte() != 0;
     }
 
     public static final Creator<Movie> CREATOR = new Creator<Movie>() {
@@ -155,6 +177,14 @@ public class Movie implements Parcelable {
         this.videos = videos;
     }
 
+    public boolean isFavorite() {
+        return favorite;
+    }
+
+    public void setFavorite(boolean favorite) {
+        this.favorite = favorite;
+    }
+
     @Override
     public int describeContents() {
         return 0;
@@ -177,5 +207,6 @@ public class Movie implements Parcelable {
             dest.writeInt(runtime);
         }
         dest.writeTypedList(videos);
+        dest.writeByte((byte) (favorite ? 1 : 0));
     }
 }

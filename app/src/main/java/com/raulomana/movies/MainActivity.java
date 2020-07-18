@@ -12,7 +12,9 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ViewAnimator;
 
+import com.raulomana.movies.db.AppDataBase;
 import com.raulomana.movies.model.Movie;
+import com.raulomana.movies.utils.AppExecutors;
 import com.raulomana.movies.utils.MoviesAPIJsonUtils;
 import com.raulomana.movies.utils.NetworkUtils;
 
@@ -97,11 +99,17 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.OnM
         new FetchMoviesTask().execute(NetworkUtils.POPULAR_TYPE);
     }
 
-    private void bindMovies(@NonNull List<Movie> movies) {
+    private void bindMovies(@NonNull final List<Movie> movies) {
         this.movies = movies;
         MoviesAdapter adapter = new MoviesAdapter(movies, this);
         moviesList.setAdapter(adapter);
         moviesList.setLayoutManager(new GridLayoutManager(MainActivity.this, COLUMNS));
+        AppExecutors.getInstance().diskIO().execute(new Runnable() {
+            @Override
+            public void run() {
+                AppDataBase.getInstance(MainActivity.this).movieDao().save(movies);
+            }
+        });
     }
 
     private void sortBy(int sortBy) {

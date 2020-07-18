@@ -1,9 +1,11 @@
 package com.raulomana.movies.model;
 
+import android.arch.persistence.room.Entity;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.support.annotation.NonNull;
 
+@Entity(tableName = "video")
 public class Video implements Parcelable {
     @NonNull
     private String name;
