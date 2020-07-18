@@ -2,7 +2,6 @@ package com.raulomana.movies;
 
 import android.content.Intent;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -52,10 +51,6 @@ public class DetailActivity extends AppCompatActivity implements MovieDetailAdap
         }
     }
 
-    private void loadMovie(@NonNull Movie movie) {
-        new FetchMovieTask().execute(movie.getId());
-    }
-
     private void bindMovie(@NonNull final Movie movie) {
         title.setText(movie.getTitle());
         itemsList.setLayoutManager(new LinearLayoutManager(this));
@@ -82,55 +77,46 @@ public class DetailActivity extends AppCompatActivity implements MovieDetailAdap
         }
     }
 
-    public class FetchMovieTask extends AsyncTask<Integer, Void, Movie> {
+    private void loadMovie(@NonNull Movie movie) {
+        viewAnimator.setDisplayedChild(VA_INDEX_LOADING_STATE);
+        final int movieId = movie.getId();
+        AppExecutors.getInstance().networkIO().execute(new Runnable() {
+            @Override
+            public void run() {
+                URL moviesRequestUrl = NetworkUtils.buildMovieUrl(BuildConfig.tmdb_api_key, movieId);
 
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-            viewAnimator.setDisplayedChild(VA_INDEX_LOADING_STATE);
-        }
-
-        @Override
-        protected Movie doInBackground(Integer... params) {
-
-            /* If there's no movie id, there's nothing to look up. */
-            if (params.length == 0) {
-                return null;
-            }
-
-            Integer movieId = params[0];
-            if(movieId == null) {
-                return null;
-            }
-
-            URL moviesRequestUrl = NetworkUtils.buildMovieUrl(BuildConfig.tmdb_api_key, movieId);
-
-            if(moviesRequestUrl == null) {
-                return null;
-            }
-
-            try {
-                String response = NetworkUtils.getResponseFromHttpUrl(moviesRequestUrl);
-                if(response == null) {
-                    return null;
+                if(moviesRequestUrl != null) {
+                    try {
+                        String response = NetworkUtils.getResponseFromHttpUrl(moviesRequestUrl);
+                        if(response != null) {
+                            final Movie fromJson = MoviesAPIJsonUtils.getMovieFromJson(response);
+                            showResultUIThread(fromJson);
+                        } else {
+                            showResultUIThread(null);
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        showResultUIThread(null);
+                    }
+                } else {
+                    showResultUIThread(null);
                 }
-                return MoviesAPIJsonUtils.getMovieFromJson(response);
-            } catch (Exception e) {
-                e.printStackTrace();
-                return null;
             }
-        }
-
-        @Override
-        protected void onPostExecute(Movie movie) {
-            if (movie != null) {
-                bindMovie(movie);
-                viewAnimator.setDisplayedChild(VA_INDEX_CONTENT_STATE);
-            } else {
-                viewAnimator.setDisplayedChild(VA_INDEX_ERROR_STATE);
-            }
-        }
+        });
     }
 
+    private void showResultUIThread(@Nullable final Movie movie) {
+        AppExecutors.getInstance().mainThread().execute(new Runnable() {
+            @Override
+            public void run() {
+                if(movie == null) {
+                    viewAnimator.setDisplayedChild(VA_INDEX_ERROR_STATE);
+                } else {
+                    viewAnimator.setDisplayedChild(VA_INDEX_CONTENT_STATE);
+                    bindMovie(movie);
+                }
+            }
+        });
+    }
 
 }

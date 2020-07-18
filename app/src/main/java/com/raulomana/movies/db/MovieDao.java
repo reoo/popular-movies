@@ -1,5 +1,6 @@
 package com.raulomana.movies.db;
 
+import android.arch.lifecycle.LiveData;
 import android.arch.persistence.room.Dao;
 import android.arch.persistence.room.Insert;
 import android.arch.persistence.room.OnConflictStrategy;
@@ -16,7 +17,7 @@ public interface MovieDao {
 
     @NonNull
     @Query("SELECT * FROM movie")
-    List<Movie> getAll();
+    LiveData<List<Movie>> getAll();
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     void save(@NonNull Movie movie);

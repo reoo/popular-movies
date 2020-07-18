@@ -1,7 +1,6 @@
 package com.raulomana.movies;
 
 import android.content.Intent;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -54,7 +53,7 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.OnM
         viewAnimator = findViewById(R.id.movies_view_animator);
         moviesList = findViewById(R.id.movies_list_items);
 
-        loadMovies();
+        pullMovies(NetworkUtils.POPULAR_TYPE);
     }
 
     @Override
@@ -70,18 +69,16 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.OnM
         int itemId = item.getItemId();
         if(R.id.menu_movies_sort_by_popularity == itemId) {
             if(orderByPopularityMenuItem != null && orderByRatingMenuItem != null) {
-                new FetchMoviesTask().execute(NetworkUtils.POPULAR_TYPE);
+                pullMovies(NetworkUtils.POPULAR_TYPE);
                 orderByPopularityMenuItem.setChecked(true);
                 orderByRatingMenuItem.setChecked(false);
-//                sortBy(POPULARITY);
             }
             return true;
         } else if(R.id.menu_movies_sort_by_rating == itemId) {
             if(orderByPopularityMenuItem != null && orderByRatingMenuItem != null) {
-                new FetchMoviesTask().execute(NetworkUtils.TOP_RATED_TYPE);
+                pullMovies(NetworkUtils.TOP_RATED_TYPE);
                 orderByPopularityMenuItem.setChecked(false);
                 orderByRatingMenuItem.setChecked(true);
-//                sortBy(RATING);
             }
             return true;
         }
@@ -93,10 +90,6 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.OnM
         Intent intent = new Intent(MainActivity.this, DetailActivity.class);
         intent.putExtra(EXTRA_MOVIE, movie);
         startActivity(intent);
-    }
-
-    private void loadMovies() {
-        new FetchMoviesTask().execute(NetworkUtils.POPULAR_TYPE);
     }
 
     private void bindMovies(@NonNull final List<Movie> movies) {
@@ -138,50 +131,49 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.OnM
         }
     }
 
-    public class FetchMoviesTask extends AsyncTask<String, Void, List<Movie>> {
+    private void pullMovies(@NonNull final String type) {
+        viewAnimator.setDisplayedChild(VA_INDEX_LOADING_STATE);
+        if(NetworkUtils.POPULAR_TYPE.equals(type) || NetworkUtils.TOP_RATED_TYPE.equals(type)) {
+            AppExecutors.getInstance().networkIO().execute(new Runnable() {
+                @Override
+                public void run() {
+                    URL moviesRequestUrl = NetworkUtils.buildMoviesListUrl(BuildConfig.tmdb_api_key, type, 1);
 
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-            viewAnimator.setDisplayedChild(VA_INDEX_LOADING_STATE);
-        }
-
-        @Override
-        protected List<Movie> doInBackground(String... params) {
-
-            /* If there's no movies type, there's nothing to look up. */
-            if (params.length == 0) {
-                return null;
-            }
-
-            String type = params[0];
-            URL moviesRequestUrl = NetworkUtils.buildMoviesListUrl(BuildConfig.tmdb_api_key, type, 1);
-
-            if(moviesRequestUrl == null) {
-                return null;
-            }
-
-            try {
-                String response = NetworkUtils.getResponseFromHttpUrl(moviesRequestUrl);
-                if(response == null) {
-                    return null;
+                    if(moviesRequestUrl != null) {
+                        try {
+                            String response = NetworkUtils.getResponseFromHttpUrl(moviesRequestUrl);
+                            if(response != null) {
+                                List<Movie> movies = MoviesAPIJsonUtils.getMoviesFromJson(response);
+                                showMovies(movies);
+                            } else {
+                                showMovies(null);
+                            }
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                            showMovies(null);
+                        }
+                    } else {
+                        showMovies(null);
+                    }
                 }
-                return MoviesAPIJsonUtils.getMoviesFromJson(response);
-            } catch (Exception e) {
-                e.printStackTrace();
-                return null;
-            }
+            });
+        } else {
+            // TODO: 18/07/2020 pull from cache
         }
+    }
 
-        @Override
-        protected void onPostExecute(List<Movie> movies) {
-            if (movies != null) {
-                bindMovies(movies);
-                viewAnimator.setDisplayedChild(VA_INDEX_CONTENT_STATE);
-            } else {
-                viewAnimator.setDisplayedChild(VA_INDEX_ERROR_STATE);
+    private void showMovies(@Nullable final List<Movie> movies) {
+        AppExecutors.getInstance().mainThread().execute(new Runnable() {
+            @Override
+            public void run() {
+                if (movies != null) {
+                    bindMovies(movies);
+                    viewAnimator.setDisplayedChild(VA_INDEX_CONTENT_STATE);
+                } else {
+                    viewAnimator.setDisplayedChild(VA_INDEX_ERROR_STATE);
+                }
             }
-        }
+        });
     }
 
 }

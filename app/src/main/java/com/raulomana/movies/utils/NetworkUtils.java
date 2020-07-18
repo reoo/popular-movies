@@ -37,6 +37,7 @@ public final class NetworkUtils {
 
     public final static String POPULAR_TYPE = "popular";
     public final static String TOP_RATED_TYPE = "top_rated";
+    public final static String CACHE_TYPE = "cache";
 
     private final static String API_KEY_PARAM = "api_key";
     public static final String VIDEOS_PARAM = "append_to_response";
