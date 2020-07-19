@@ -81,6 +81,42 @@ public final class NetworkUtils {
         return url;
     }
 
+    @Nullable
+    public static URL buildReviewsUrl(@NonNull String apiKey, int movieId) {
+        Uri builtUri = Uri.parse(MOVIES_API_BASE_URL).buildUpon()
+                .path("/3/movie/" + movieId + "/reviews")
+                .appendQueryParameter(API_KEY_PARAM, apiKey)
+                .build();
+
+        URL url = null;
+        try {
+            url = new URL(builtUri.toString());
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        }
+
+        Log.v(TAG, "Built URI " + url);
+        return url;
+    }
+
+    @Nullable
+    public static URL buildVideosUrl(@NonNull String apiKey, int movieId) {
+        Uri builtUri = Uri.parse(MOVIES_API_BASE_URL).buildUpon()
+                .path("/3/movie/" + movieId + "/videos")
+                .appendQueryParameter(API_KEY_PARAM, apiKey)
+                .build();
+
+        URL url = null;
+        try {
+            url = new URL(builtUri.toString());
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        }
+
+        Log.v(TAG, "Built URI " + url);
+        return url;
+    }
+
     /**
      * This method returns the entire result from the HTTP response.
      *

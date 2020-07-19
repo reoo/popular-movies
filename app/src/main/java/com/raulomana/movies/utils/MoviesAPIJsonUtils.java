@@ -1,6 +1,7 @@
 package com.raulomana.movies.utils;
 
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
 import com.raulomana.movies.model.Movie;
 import com.raulomana.movies.model.Review;
@@ -124,7 +125,65 @@ public class MoviesAPIJsonUtils {
             }
         }
 
-        return new Movie(id, title, description, image, rating, popularity, releaseDate, displayReleaseDate, runtime, videos, reviews, false);
+        return new Movie(id, title, description, image, rating, popularity, releaseDate, displayReleaseDate, runtime, false);
+    }
+
+    @NonNull
+    public static List<Review> parseReviews(@Nullable String json) throws JSONException {
+        if(json == null) {
+            return new ArrayList<>(0);
+        }
+
+        List<Review> reviews = new ArrayList<>();
+        JSONObject jsonObject = new JSONObject(json);
+        if(jsonObject.has("results")) {
+            JSONArray results = jsonObject.getJSONArray("results");
+            for(int i = 0; i < results.length(); i++) {
+                JSONObject item = results.getJSONObject(i);
+                if(item.has("author") && item.has("content") && item.has("id") && item.has("url")) {
+                    String author = item.getString("author");
+                    String content = item.getString("content");
+                    String reviewId = item.getString("id");
+                    String url = item.getString("url");
+                    reviews.add(new Review(reviewId, author, content, url));
+                }
+            }
+        }
+
+        return reviews;
+    }
+
+    @NonNull
+    public static List<Video> parseVideos(@Nullable String json) throws JSONException {
+        if(json == null) {
+            return new ArrayList<>(0);
+        }
+
+        List<Video> videos = new ArrayList<>();
+        JSONObject jsonObject = new JSONObject(json);
+        if(jsonObject.has("results")) {
+            JSONArray results = jsonObject.getJSONArray("results");
+            for(int i = 0; i < results.length(); i++) {
+                JSONObject item = results.getJSONObject(i);
+                if(item.has("type") && item.has("key") && item.has("site") && item.has("name")) {
+                    String type = item.getString("type");
+                    if(VIDEO_TYPE_TRAILER.equals(type)) {
+                        String key = item.getString("key");
+                        String site = item.getString("site");
+                        String name = item.getString("name");
+                        String url = null;
+                        if(VIDEO_SITE_YOUTUBE.equals(site)) {
+                            url = "https://www.youtube.com/watch?v=" + key;
+                        } else {
+                            url = "https://vimeo.com/" + key;
+                        }
+                        videos.add(new Video(name, url, site, type));
+                    }
+                }
+            }
+        }
+
+        return videos;
     }
 
 

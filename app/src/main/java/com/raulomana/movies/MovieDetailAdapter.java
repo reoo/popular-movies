@@ -23,6 +23,10 @@ public class MovieDetailAdapter extends RecyclerView.Adapter<MovieDetailAdapter.
     @NonNull
     private Movie movie;
     @Nullable
+    private List<Review> reviews;
+    @Nullable
+    private List<Video> videos;
+    @Nullable
     private OnDetailClickListener listener;
     @NonNull
     private SparseIntArray positionToLayout;
@@ -34,26 +38,26 @@ public class MovieDetailAdapter extends RecyclerView.Adapter<MovieDetailAdapter.
         void onVideoClick(@NonNull Movie movie, @NonNull Video video);
     }
 
-    public MovieDetailAdapter(@NonNull Movie movie, @Nullable OnDetailClickListener listener) {
+    public MovieDetailAdapter(@NonNull Movie movie, @Nullable List<Review> reviews, @Nullable List<Video> videos, @Nullable OnDetailClickListener listener) {
         this.movie = movie;
+        this.reviews = reviews;
+        this.videos = videos;
         this.listener = listener;
         positionToLayout = new SparseIntArray();
         positionToModel = new SparseArray<>();
         int currentPosition = 0;
         positionToLayout.put(currentPosition++, R.layout.detail_item_header);
         positionToLayout.put(currentPosition++, R.layout.detail_item_description);
-        List<Video> videos = this.movie.getVideos();
-        if(!videos.isEmpty()) {
+        if(this.videos != null && !this.videos.isEmpty()) {
             positionToLayout.put(currentPosition++, R.layout.detail_item_videos_header);
-            for(Video item: videos) {
+            for(Video item: this.videos) {
                 positionToLayout.put(currentPosition, R.layout.detail_item_video_item);
                 positionToModel.put(currentPosition++, item);
             }
         }
-        List<Review> reviews = this.movie.getReviews();
-        if(!reviews.isEmpty()) {
+        if(this.reviews != null && !this.reviews.isEmpty()) {
             positionToLayout.put(currentPosition++, R.layout.detail_item_reviews_header);
-            for(Review item: reviews) {
+            for(Review item: this.reviews) {
                 positionToLayout.put(currentPosition, R.layout.detail_item_review);
                 positionToModel.put(currentPosition++, item);
             }

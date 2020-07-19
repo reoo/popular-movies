@@ -16,14 +16,14 @@ import android.widget.ViewAnimator;
 
 import com.raulomana.movies.db.AppDataBase;
 import com.raulomana.movies.model.Movie;
+import com.raulomana.movies.model.Review;
 import com.raulomana.movies.model.Video;
 import com.raulomana.movies.utils.AppExecutors;
-import com.raulomana.movies.utils.MoviesAPIJsonUtils;
-import com.raulomana.movies.utils.NetworkUtils;
+import com.raulomana.movies.utils.MovieAPIUtils;
 import com.raulomana.movies.viewmodel.AddFavoriteViewModel;
 import com.raulomana.movies.viewmodel.AddFavoriteViewModelFactory;
 
-import java.net.URL;
+import java.util.List;
 
 public class DetailActivity extends AppCompatActivity implements MovieDetailAdapter.OnDetailClickListener {
     private static final String TAG = DetailActivity.class.getSimpleName();
@@ -77,33 +77,24 @@ public class DetailActivity extends AppCompatActivity implements MovieDetailAdap
 
     private void loadMovie(@NonNull final Movie movie) {
         viewAnimator.setDisplayedChild(VA_INDEX_LOADING_STATE);
-        final int movieId = movie.getId();
+        final int movieId = movie.getMovieId();
         AppExecutors.getInstance().networkIO().execute(new Runnable() {
             @Override
             public void run() {
-                URL moviesRequestUrl = NetworkUtils.buildMovieUrl(BuildConfig.tmdb_api_key, movieId);
+                Movie pulledMovie = MovieAPIUtils.getMovie(movieId);
+                List<Review> reviews = MovieAPIUtils.getReviews(movieId);
+                List<Video> videos = MovieAPIUtils.getVideos(movieId);
 
-                if(moviesRequestUrl != null) {
-                    try {
-                        String response = NetworkUtils.getResponseFromHttpUrl(moviesRequestUrl);
-                        if(response != null) {
-                            final Movie fromJson = MoviesAPIJsonUtils.getMovieFromJson(response);
-                            showResultUIThread(fromJson);
-                        } else {
-                            showResultUIThread(null);
-                        }
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                        showResultUIThread(null);
-                    }
+                if(pulledMovie != null) {
+                    setupViewModel(pulledMovie, reviews, videos);
                 } else {
-                    showResultUIThread(null);
+                    showResultUIThread(null, null, null);
                 }
             }
         });
     }
 
-    private void showResultUIThread(@Nullable final Movie movie) {
+    private void showResultUIThread(@Nullable final Movie movie, @Nullable final List<Review> reviews, @Nullable final List<Video> videos) {
         AppExecutors.getInstance().mainThread().execute(new Runnable() {
             @Override
             public void run() {
@@ -111,16 +102,32 @@ public class DetailActivity extends AppCompatActivity implements MovieDetailAdap
                     viewAnimator.setDisplayedChild(VA_INDEX_ERROR_STATE);
                 } else {
                     viewAnimator.setDisplayedChild(VA_INDEX_CONTENT_STATE);
-                    bindMovie(movie);
+                    bindMovie(movie, reviews, videos);
                 }
             }
         });
     }
 
-    private void bindMovie(@NonNull final Movie movie) {
+    private void bindMovie(@NonNull final Movie movie, @Nullable List<Review> reviews, @Nullable List<Video> videos) {
         title.setText(movie.getTitle());
         itemsList.setLayoutManager(new LinearLayoutManager(this));
-        itemsList.setAdapter(new MovieDetailAdapter(movie, this));
+        itemsList.setAdapter(new MovieDetailAdapter(movie, reviews, videos, this));
+    }
+
+    private void setupViewModel(@NonNull final Movie pulledMovie, @Nullable final List<Review> reviews, @Nullable final List<Video> videos) {
+        AddFavoriteViewModelFactory factory = new AddFavoriteViewModelFactory(dataBase, pulledMovie);
+        final AddFavoriteViewModel viewModel = ViewModelProviders.of(this, factory).get(AddFavoriteViewModel.class);
+        viewModel.getMovieLiveData().observe(this, new Observer<Movie>() {
+            @Override
+            public void onChanged(@Nullable Movie movie) {
+                viewModel.getMovieLiveData().removeObserver(this);
+                Log.d(TAG, "setupViewModel: Receiving data base update from movie = [" + (movie == null ? "null" : movie.getTitle()) + "]");
+                if(movie != null) {
+                    pulledMovie.setFavorite(movie.isFavorite());
+                }
+                showResultUIThread(pulledMovie, reviews, videos);
+            }
+        });
     }
 
     private void storeFavoriteMovie(@NonNull final Movie movieToStore) {
@@ -130,7 +137,7 @@ public class DetailActivity extends AppCompatActivity implements MovieDetailAdap
             @Override
             public void onChanged(@Nullable final Movie movie) {
                 favoriteViewModel.getMovieLiveData().removeObserver(this);
-                Log.d(TAG, "Receiving data base update from movie = [" + (movie == null ? "null" : movie.getTitle()) + "]");
+                Log.d(TAG, "storeFavoriteMovie: Receiving data base update from movie = [" + (movie == null ? "null" : movie.getTitle()) + "]");
                 AppExecutors.getInstance().diskIO().execute(new Runnable() {
                     @Override
                     public void run() {
