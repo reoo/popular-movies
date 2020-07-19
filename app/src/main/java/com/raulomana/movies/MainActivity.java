@@ -1,5 +1,6 @@
 package com.raulomana.movies;
 
+import android.arch.lifecycle.Observer;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -7,6 +8,7 @@ import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ViewAnimator;
@@ -23,6 +25,8 @@ import java.util.Comparator;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements MoviesAdapter.OnMovieClickListener {
+    private static final String TAG = MainActivity.class.getSimpleName();
+
     private static final int COLUMNS = 2;
 
     private static final int VA_INDEX_LOADING_STATE = 0;
@@ -41,6 +45,8 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.OnM
     private MenuItem orderByRatingMenuItem;
     @Nullable
     private MenuItem orderByPopularityMenuItem;
+    @Nullable
+    private MenuItem viewFavoritesMenuItem;
 
     @Nullable
     private List<Movie> movies;
@@ -61,24 +67,25 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.OnM
         getMenuInflater().inflate(R.menu.movies, menu);
         orderByRatingMenuItem = menu.findItem(R.id.menu_movies_sort_by_rating);
         orderByPopularityMenuItem = menu.findItem(R.id.menu_movies_sort_by_popularity);
+        viewFavoritesMenuItem = menu.findItem(R.id.menu_movies_view_favorites);
         return true;
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int itemId = item.getItemId();
-        if(R.id.menu_movies_sort_by_popularity == itemId) {
-            if(orderByPopularityMenuItem != null && orderByRatingMenuItem != null) {
-                pullMovies(NetworkUtils.POPULAR_TYPE);
-                orderByPopularityMenuItem.setChecked(true);
-                orderByRatingMenuItem.setChecked(false);
-            }
-            return true;
-        } else if(R.id.menu_movies_sort_by_rating == itemId) {
-            if(orderByPopularityMenuItem != null && orderByRatingMenuItem != null) {
-                pullMovies(NetworkUtils.TOP_RATED_TYPE);
-                orderByPopularityMenuItem.setChecked(false);
-                orderByRatingMenuItem.setChecked(true);
+        boolean isPopularityClicked = R.id.menu_movies_sort_by_popularity == itemId;
+        boolean isRatingClicked = R.id.menu_movies_sort_by_rating == itemId;
+        boolean isFavoritesClicked = R.id.menu_movies_view_favorites == itemId;
+        if(isPopularityClicked || isRatingClicked || isFavoritesClicked) {
+            if(orderByPopularityMenuItem != null && orderByRatingMenuItem != null && viewFavoritesMenuItem != null) {
+                String type = isPopularityClicked ? NetworkUtils.POPULAR_TYPE
+                        : isRatingClicked ? NetworkUtils.TOP_RATED_TYPE
+                        : NetworkUtils.CACHE_TYPE;
+                pullMovies(type);
+                orderByPopularityMenuItem.setChecked(isPopularityClicked);
+                orderByRatingMenuItem.setChecked(isRatingClicked);
+                viewFavoritesMenuItem.setChecked(isFavoritesClicked);
             }
             return true;
         }
@@ -97,12 +104,6 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.OnM
         MoviesAdapter adapter = new MoviesAdapter(movies, this);
         moviesList.setAdapter(adapter);
         moviesList.setLayoutManager(new GridLayoutManager(MainActivity.this, COLUMNS));
-        AppExecutors.getInstance().diskIO().execute(new Runnable() {
-            @Override
-            public void run() {
-                AppDataBase.getInstance(MainActivity.this).movieDao().save(movies);
-            }
-        });
     }
 
     private void sortBy(int sortBy) {
@@ -145,6 +146,7 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.OnM
                             if(response != null) {
                                 List<Movie> movies = MoviesAPIJsonUtils.getMoviesFromJson(response);
                                 showMovies(movies);
+//                                storeMovies(movies);
                             } else {
                                 showMovies(null);
                             }
@@ -158,7 +160,14 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.OnM
                 }
             });
         } else {
-            // TODO: 18/07/2020 pull from cache
+            AppDataBase.getInstance(getApplication()).movieDao().getAllFavorites().observe(this, new Observer<List<Movie>>() {
+                @Override
+                public void onChanged(@Nullable List<Movie> movies) {
+                    AppDataBase.getInstance(getApplication()).movieDao().getAllFavorites().removeObserver(this);
+                    Log.d(TAG, "onChanged() called with: movies = [" + ( movies == null ? "null" : movies.size() ) + "]");
+                    showMovies(movies);
+                }
+            });
         }
     }
 
@@ -172,6 +181,15 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.OnM
                 } else {
                     viewAnimator.setDisplayedChild(VA_INDEX_ERROR_STATE);
                 }
+            }
+        });
+    }
+
+    private void storeMovies(@NonNull final List<Movie> movies) {
+        AppExecutors.getInstance().diskIO().execute(new Runnable() {
+            @Override
+            public void run() {
+                AppDataBase.getInstance(MainActivity.this).movieDao().save(movies);
             }
         });
     }

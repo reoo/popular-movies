@@ -11,5 +11,10 @@
         android:title="@string/menu_movies_sort_by_rating"
         android:checkable="true"
         app:showAsAction="never" />
+    <item
+        android:id="@+id/menu_movies_view_favorites"
+        android:title="@string/menu_movies_view_favorites"
+        android:checkable="true"
+        app:showAsAction="never" />
 
 </menu>
