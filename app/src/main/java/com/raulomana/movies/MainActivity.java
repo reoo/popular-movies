@@ -1,20 +1,24 @@
 package com.raulomana.movies;
 
+import android.arch.lifecycle.Observer;
+import android.arch.lifecycle.ViewModelProviders;
 import android.content.Intent;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ViewAnimator;
 
 import com.raulomana.movies.model.Movie;
+import com.raulomana.movies.utils.AppExecutors;
 import com.raulomana.movies.utils.MoviesAPIJsonUtils;
 import com.raulomana.movies.utils.NetworkUtils;
+import com.raulomana.movies.viewmodel.MainViewModel;
 
 import java.net.URL;
 import java.util.Collections;
@@ -22,6 +26,8 @@ import java.util.Comparator;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements MoviesAdapter.OnMovieClickListener {
+    private static final String TAG = MainActivity.class.getSimpleName();
+
     private static final int COLUMNS = 2;
 
     private static final int VA_INDEX_LOADING_STATE = 0;
@@ -40,6 +46,8 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.OnM
     private MenuItem orderByRatingMenuItem;
     @Nullable
     private MenuItem orderByPopularityMenuItem;
+    @Nullable
+    private MenuItem viewFavoritesMenuItem;
 
     @Nullable
     private List<Movie> movies;
@@ -52,7 +60,7 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.OnM
         viewAnimator = findViewById(R.id.movies_view_animator);
         moviesList = findViewById(R.id.movies_list_items);
 
-        loadMovies();
+        pullMovies(NetworkUtils.POPULAR_TYPE);
     }
 
     @Override
@@ -60,26 +68,25 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.OnM
         getMenuInflater().inflate(R.menu.movies, menu);
         orderByRatingMenuItem = menu.findItem(R.id.menu_movies_sort_by_rating);
         orderByPopularityMenuItem = menu.findItem(R.id.menu_movies_sort_by_popularity);
+        viewFavoritesMenuItem = menu.findItem(R.id.menu_movies_view_favorites);
         return true;
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int itemId = item.getItemId();
-        if(R.id.menu_movies_sort_by_popularity == itemId) {
-            if(orderByPopularityMenuItem != null && orderByRatingMenuItem != null) {
-                new FetchMoviesTask().execute(NetworkUtils.POPULAR_TYPE);
-                orderByPopularityMenuItem.setChecked(true);
-                orderByRatingMenuItem.setChecked(false);
-//                sortBy(POPULARITY);
-            }
-            return true;
-        } else if(R.id.menu_movies_sort_by_rating == itemId) {
-            if(orderByPopularityMenuItem != null && orderByRatingMenuItem != null) {
-                new FetchMoviesTask().execute(NetworkUtils.TOP_RATED_TYPE);
-                orderByPopularityMenuItem.setChecked(false);
-                orderByRatingMenuItem.setChecked(true);
-//                sortBy(RATING);
+        boolean isPopularityClicked = R.id.menu_movies_sort_by_popularity == itemId;
+        boolean isRatingClicked = R.id.menu_movies_sort_by_rating == itemId;
+        boolean isFavoritesClicked = R.id.menu_movies_view_favorites == itemId;
+        if(isPopularityClicked || isRatingClicked || isFavoritesClicked) {
+            if(orderByPopularityMenuItem != null && orderByRatingMenuItem != null && viewFavoritesMenuItem != null) {
+                orderByPopularityMenuItem.setChecked(isPopularityClicked);
+                orderByRatingMenuItem.setChecked(isRatingClicked);
+                viewFavoritesMenuItem.setChecked(isFavoritesClicked);
+                String type = isPopularityClicked ? NetworkUtils.POPULAR_TYPE
+                        : isRatingClicked ? NetworkUtils.TOP_RATED_TYPE
+                        : NetworkUtils.CACHE_TYPE;
+                pullMovies(type);
             }
             return true;
         }
@@ -93,11 +100,7 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.OnM
         startActivity(intent);
     }
 
-    private void loadMovies() {
-        new FetchMoviesTask().execute(NetworkUtils.POPULAR_TYPE);
-    }
-
-    private void bindMovies(@NonNull List<Movie> movies) {
+    private void bindMovies(@NonNull final List<Movie> movies) {
         this.movies = movies;
         MoviesAdapter adapter = new MoviesAdapter(movies, this);
         moviesList.setAdapter(adapter);
@@ -130,50 +133,64 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.OnM
         }
     }
 
-    public class FetchMoviesTask extends AsyncTask<String, Void, List<Movie>> {
+    private void pullMovies(@NonNull final String type) {
+        viewAnimator.setDisplayedChild(VA_INDEX_LOADING_STATE);
+        if(NetworkUtils.POPULAR_TYPE.equals(type) || NetworkUtils.TOP_RATED_TYPE.equals(type)) {
+            AppExecutors.getInstance().networkIO().execute(new Runnable() {
+                @Override
+                public void run() {
+                    URL moviesRequestUrl = NetworkUtils.buildMoviesListUrl(BuildConfig.tmdb_api_key, type, 1);
 
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-            viewAnimator.setDisplayedChild(VA_INDEX_LOADING_STATE);
-        }
-
-        @Override
-        protected List<Movie> doInBackground(String... params) {
-
-            /* If there's no movies type, there's nothing to look up. */
-            if (params.length == 0) {
-                return null;
-            }
-
-            String type = params[0];
-            URL moviesRequestUrl = NetworkUtils.buildMoviesListUrl(BuildConfig.tmdb_api_key, type, 1);
-
-            if(moviesRequestUrl == null) {
-                return null;
-            }
-
-            try {
-                String response = NetworkUtils.getResponseFromHttpUrl(moviesRequestUrl);
-                if(response == null) {
-                    return null;
+                    if(moviesRequestUrl != null) {
+                        try {
+                            String response = NetworkUtils.getResponseFromHttpUrl(moviesRequestUrl);
+                            if(response != null) {
+                                List<Movie> movies = MoviesAPIJsonUtils.getMoviesFromJson(response);
+                                showMovies(movies);
+                            } else {
+                                showMovies(null);
+                            }
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                            showMovies(null);
+                        }
+                    } else {
+                        showMovies(null);
+                    }
                 }
-                return MoviesAPIJsonUtils.getMoviesFromJson(response);
-            } catch (Exception e) {
-                e.printStackTrace();
-                return null;
-            }
+            });
+        } else {
+            setupViewModel();
         }
+    }
 
-        @Override
-        protected void onPostExecute(List<Movie> movies) {
-            if (movies != null) {
-                bindMovies(movies);
-                viewAnimator.setDisplayedChild(VA_INDEX_CONTENT_STATE);
-            } else {
-                viewAnimator.setDisplayedChild(VA_INDEX_ERROR_STATE);
+    private void setupViewModel() {
+        MainViewModel viewModel = ViewModelProviders.of(this).get(MainViewModel.class);
+        viewModel.getFavoritesLiveData().observe(this, new Observer<List<Movie>>() {
+            @Override
+            public void onChanged(@Nullable List<Movie> movies) {
+                Log.d(TAG, "onChanged() called with: movies = [" + ( movies == null ? "null" : movies.size() ) + "]");
+                if(viewFavoritesMenuItem != null && viewFavoritesMenuItem.isChecked()) {
+                    showMovies(movies);
+                } else {
+                    Log.d(TAG, "onChanged(): ignoring changes to the db");
+                }
             }
-        }
+        });
+    }
+
+    private void showMovies(@Nullable final List<Movie> movies) {
+        AppExecutors.getInstance().mainThread().execute(new Runnable() {
+            @Override
+            public void run() {
+                if (movies != null) {
+                    bindMovies(movies);
+                    viewAnimator.setDisplayedChild(VA_INDEX_CONTENT_STATE);
+                } else {
+                    viewAnimator.setDisplayedChild(VA_INDEX_ERROR_STATE);
+                }
+            }
+        });
     }
 
 }

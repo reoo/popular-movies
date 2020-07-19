@@ -1,125 +1,58 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
+    <android.support.design.widget.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:background="@color/colorSecondary">
+
+        <android.support.design.widget.CollapsingToolbarLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:layout_scrollFlags="scroll|snap">
+
+            <TextView
+                android:id="@+id/detail_title"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:padding="@dimen/keyline_6"
+                android:textColor="@color/onPrimary"
+                tools:text="Title goes here"
+                style="@style/TextAppearance.AppCompat.Display1" />
+
+        </android.support.design.widget.CollapsingToolbarLayout>
+
+    </android.support.design.widget.AppBarLayout>
+
     <ViewAnimator
         android:id="@+id/detail_view_animator"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        app:layout_behavior="android.support.design.widget.AppBarLayout$ScrollingViewBehavior">
+
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/detail_list_items"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
 
         <ProgressBar
+            android:id="@+id/detail_loading_state"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center" />
 
-        <ScrollView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical">
-
-                <android.support.design.widget.AppBarLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="200dp"
-                    android:background="@color/colorSecondary"
-                    >
-
-                    <TextView
-                        android:id="@+id/detail_title"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:padding="@dimen/keyline_6"
-                        android:textColor="@color/onPrimary"
-                        tools:text="Title goes here"
-                        style="@style/TextAppearance.AppCompat.Display1" />
-
-                </android.support.design.widget.AppBarLayout>
-
-                <android.support.constraint.ConstraintLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:padding="@dimen/keyline_4">
-
-                    <android.support.constraint.Guideline
-                        android:id="@+id/detail_guideline"
-                        android:layout_width="1dp"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        app:layout_constraintGuide_percent=".4"
-                        />
-
-                    <ImageView
-                        android:id="@+id/detail_image"
-                        android:layout_width="0dp"
-                        android:layout_height="@dimen/movie_detail_image_height"
-                        app:layout_constraintTop_toTopOf="parent"
-                        app:layout_constraintBottom_toBottomOf="parent"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintEnd_toStartOf="@id/detail_guideline"
-                        />
-
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:padding="@dimen/keyline_4"
-                        app:layout_constraintTop_toTopOf="parent"
-                        app:layout_constraintStart_toEndOf="@id/detail_guideline"
-                        app:layout_constraintEnd_toEndOf="parent">
-
-                        <TextView
-                            android:id="@+id/detail_release_date"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            style="@style/TextAppearance.AppCompat.Large"
-                            tools:text="2020" />
-
-                        <TextView
-                            android:id="@+id/detail_duration"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:textStyle="italic"
-                            style="@style/TextAppearance.AppCompat.Large"
-                            tools:text="120min" />
-
-                        <TextView
-                            android:id="@+id/detail_rating"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            style="@style/TextAppearance.AppCompat.Body1"
-                            tools:text="Rating goes here" />
-
-                    </LinearLayout>
-
-                </android.support.constraint.ConstraintLayout>
-
-                <TextView
-                    android:id="@+id/detail_description"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:padding="@dimen/keyline_4"
-                    style="@style/TextAppearance.AppCompat.Body1"
-                    tools:text="Description goes here"
-                    />
-
-            </LinearLayout>
-
-        </ScrollView>
-
         <TextView
-            android:id="@+id/movies_error_state_message"
+            android:id="@+id/detail_error_state_message"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:text="@string/movies_error_state_message"
+            android:text="@string/detail_error_state_message"
             />
 
     </ViewAnimator>
 
-</FrameLayout>
+</android.support.design.widget.CoordinatorLayout>

@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="@dimen/keyline_4">
+
+    <android.support.constraint.Guideline
+        android:id="@+id/detail_guideline"
+        android:layout_width="1dp"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent=".4"
+        />
+
+    <ImageView
+        android:id="@+id/detail_item_image"
+        android:layout_width="0dp"
+        android:layout_height="@dimen/movie_detail_image_height"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/detail_guideline"
+        />
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="@dimen/keyline_4"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toEndOf="@id/detail_guideline"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <TextView
+            android:id="@+id/detail_item_release_date"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            style="@style/TextAppearance.AppCompat.Large"
+            tools:text="2020" />
+
+        <TextView
+            android:id="@+id/detail_item_duration"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textStyle="italic"
+            style="@style/TextAppearance.AppCompat.Large"
+            tools:text="120min" />
+
+        <TextView
+            android:id="@+id/detail_item_rating"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            style="@style/TextAppearance.AppCompat.Body1"
+            tools:text="Rating goes here" />
+
+        <Button
+            android:id="@+id/detail_item_favorite_action"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:drawableStart="@drawable/selector_favorite_icon"
+            android:drawablePadding="@dimen/keyline_2"
+            android:drawableTint="@android:color/white"
+            android:paddingStart="@dimen/keyline_4"
+            android:paddingEnd="@dimen/keyline_4"
+            android:backgroundTint="@color/colorSecondary"
+            android:textColor="@android:color/white"
+            android:text="@string/detail_item_favorite_action"
+            style="@style/Widget.AppCompat.Button.Colored"
+            />
+
+    </LinearLayout>
+
+</android.support.constraint.ConstraintLayout>
