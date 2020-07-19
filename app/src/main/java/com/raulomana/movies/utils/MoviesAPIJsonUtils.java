@@ -124,7 +124,7 @@ public class MoviesAPIJsonUtils {
             }
         }
 
-        return new Movie(id, title, description, image, rating, popularity, releaseDate, displayReleaseDate, runtime, videos, reviews, true);
+        return new Movie(id, title, description, image, rating, popularity, releaseDate, displayReleaseDate, runtime, videos, reviews, false);
     }
 
 

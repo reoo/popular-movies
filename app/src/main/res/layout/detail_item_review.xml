@@ -27,4 +27,13 @@
         style="@style/BodyStyle"
         tools:text="Content goes here" />
 
+    <View
+        android:layout_width="0dp"
+        android:layout_height="1dp"
+        android:layout_marginTop="@dimen/keyline_2"
+        android:background="@color/colorLineIndicator"
+        app:layout_constraintTop_toBottomOf="@id/detail_item_review_content"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
 </android.support.constraint.ConstraintLayout>

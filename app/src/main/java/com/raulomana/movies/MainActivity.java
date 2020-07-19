@@ -1,6 +1,7 @@
 package com.raulomana.movies;
 
 import android.arch.lifecycle.Observer;
+import android.arch.lifecycle.ViewModelProviders;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -13,11 +14,11 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ViewAnimator;
 
-import com.raulomana.movies.db.AppDataBase;
 import com.raulomana.movies.model.Movie;
 import com.raulomana.movies.utils.AppExecutors;
 import com.raulomana.movies.utils.MoviesAPIJsonUtils;
 import com.raulomana.movies.utils.NetworkUtils;
+import com.raulomana.movies.viewmodel.MainViewModel;
 
 import java.net.URL;
 import java.util.Collections;
@@ -79,13 +80,13 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.OnM
         boolean isFavoritesClicked = R.id.menu_movies_view_favorites == itemId;
         if(isPopularityClicked || isRatingClicked || isFavoritesClicked) {
             if(orderByPopularityMenuItem != null && orderByRatingMenuItem != null && viewFavoritesMenuItem != null) {
+                orderByPopularityMenuItem.setChecked(isPopularityClicked);
+                orderByRatingMenuItem.setChecked(isRatingClicked);
+                viewFavoritesMenuItem.setChecked(isFavoritesClicked);
                 String type = isPopularityClicked ? NetworkUtils.POPULAR_TYPE
                         : isRatingClicked ? NetworkUtils.TOP_RATED_TYPE
                         : NetworkUtils.CACHE_TYPE;
                 pullMovies(type);
-                orderByPopularityMenuItem.setChecked(isPopularityClicked);
-                orderByRatingMenuItem.setChecked(isRatingClicked);
-                viewFavoritesMenuItem.setChecked(isFavoritesClicked);
             }
             return true;
         }
@@ -146,7 +147,6 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.OnM
                             if(response != null) {
                                 List<Movie> movies = MoviesAPIJsonUtils.getMoviesFromJson(response);
                                 showMovies(movies);
-//                                storeMovies(movies);
                             } else {
                                 showMovies(null);
                             }
@@ -160,15 +160,23 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.OnM
                 }
             });
         } else {
-            AppDataBase.getInstance(getApplication()).movieDao().getAllFavorites().observe(this, new Observer<List<Movie>>() {
-                @Override
-                public void onChanged(@Nullable List<Movie> movies) {
-                    AppDataBase.getInstance(getApplication()).movieDao().getAllFavorites().removeObserver(this);
-                    Log.d(TAG, "onChanged() called with: movies = [" + ( movies == null ? "null" : movies.size() ) + "]");
-                    showMovies(movies);
-                }
-            });
+            setupViewModel();
         }
+    }
+
+    private void setupViewModel() {
+        MainViewModel viewModel = ViewModelProviders.of(this).get(MainViewModel.class);
+        viewModel.getFavoritesLiveData().observe(this, new Observer<List<Movie>>() {
+            @Override
+            public void onChanged(@Nullable List<Movie> movies) {
+                Log.d(TAG, "onChanged() called with: movies = [" + ( movies == null ? "null" : movies.size() ) + "]");
+                if(viewFavoritesMenuItem != null && viewFavoritesMenuItem.isChecked()) {
+                    showMovies(movies);
+                } else {
+                    Log.d(TAG, "onChanged(): ignoring changes to the db");
+                }
+            }
+        });
     }
 
     private void showMovies(@Nullable final List<Movie> movies) {
@@ -181,15 +189,6 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.OnM
                 } else {
                     viewAnimator.setDisplayedChild(VA_INDEX_ERROR_STATE);
                 }
-            }
-        });
-    }
-
-    private void storeMovies(@NonNull final List<Movie> movies) {
-        AppExecutors.getInstance().diskIO().execute(new Runnable() {
-            @Override
-            public void run() {
-                AppDataBase.getInstance(MainActivity.this).movieDao().save(movies);
             }
         });
     }

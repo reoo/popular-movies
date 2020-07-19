@@ -18,7 +18,7 @@
             android:layout_height="48dp"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            android:src="@android:drawable/ic_menu_upload_you_tube" />
+            android:src="@drawable/ic_play_arrow_black_18dp" />
 
         <TextView
             android:id="@+id/detail_item_video_item_name"

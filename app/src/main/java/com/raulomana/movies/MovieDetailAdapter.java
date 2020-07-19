@@ -168,6 +168,11 @@ public class MovieDetailAdapter extends RecyclerView.Adapter<MovieDetailAdapter.
 
             favoriteAction.setOnClickListener(this);
             favoriteAction.setSelected(movie.isFavorite());
+            if(movie.isFavorite()) {
+                favoriteAction.setText(R.string.detail_item_un_favorite_action);
+            } else {
+                favoriteAction.setText(R.string.detail_item_favorite_action);
+            }
         }
 
         private void bindDescription(@NonNull String description) {
@@ -197,6 +202,7 @@ public class MovieDetailAdapter extends RecyclerView.Adapter<MovieDetailAdapter.
             if(R.id.detail_item_favorite_action == id) {
                 if(listener != null) {
                     listener.onFavoriteClick(movie);
+                    notifyItemChanged(getAdapterPosition());
                 }
             }
         }
