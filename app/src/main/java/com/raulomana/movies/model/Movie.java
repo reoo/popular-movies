@@ -10,8 +10,7 @@ import android.support.annotation.Nullable;
 
 @Entity(tableName = "movie")
 public class Movie implements Parcelable {
-    @PrimaryKey(autoGenerate = true)
-    private int id;
+    @PrimaryKey
     private int movieId;
     @NonNull
     private String title;
@@ -29,21 +28,6 @@ public class Movie implements Parcelable {
     private Integer runtime;
     private boolean favorite;
 
-    public Movie(int id, int movieId, @NonNull String title, @Nullable String description, @Nullable String image, double rating, double popularity, @NonNull String releaseDate, @NonNull String displayReleaseDate, @Nullable Integer runtime, boolean favorite) {
-        this.id = id;
-        this.movieId = movieId;
-        this.title = title;
-        this.description = description;
-        this.image = image;
-        this.rating = rating;
-        this.popularity = popularity;
-        this.releaseDate = releaseDate;
-        this.displayReleaseDate = displayReleaseDate;
-        this.runtime = runtime;
-        this.favorite = favorite;
-    }
-
-    @Ignore
     public Movie(int movieId, @NonNull String title, @Nullable String description, @Nullable String image, double rating, double popularity, @NonNull String releaseDate, @NonNull String displayReleaseDate, @Nullable Integer runtime, boolean favorite) {
         this.movieId = movieId;
         this.title = title;
@@ -58,7 +42,6 @@ public class Movie implements Parcelable {
     }
 
     protected Movie(Parcel in) {
-        id = in.readInt();
         movieId = in.readInt();
         title = in.readString();
         description = in.readString();
@@ -86,14 +69,6 @@ public class Movie implements Parcelable {
             return new Movie[size];
         }
     };
-
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
-    }
 
     public int getMovieId() {
         return movieId;
@@ -188,7 +163,6 @@ public class Movie implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
-        dest.writeInt(id);
         dest.writeInt(movieId);
         dest.writeString(title);
         dest.writeString(description);

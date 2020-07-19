@@ -37,6 +37,7 @@ public class DetailActivity extends AppCompatActivity implements MovieDetailAdap
     private TextView title;
 
     private AppDataBase dataBase;
+    private Movie movie;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -53,6 +54,7 @@ public class DetailActivity extends AppCompatActivity implements MovieDetailAdap
         if(intent != null) {
             Movie movie = intent.getParcelableExtra(MainActivity.EXTRA_MOVIE);
             if(movie != null) {
+                this.movie = movie;
                 loadMovie(movie);
             } else {
                 viewAnimator.setDisplayedChild(VA_INDEX_ERROR_STATE);
@@ -86,6 +88,7 @@ public class DetailActivity extends AppCompatActivity implements MovieDetailAdap
                 List<Video> videos = MovieAPIUtils.getVideos(movieId);
 
                 if(pulledMovie != null) {
+                    DetailActivity.this.movie = pulledMovie;
                     setupViewModel(pulledMovie, reviews, videos);
                 } else {
                     showResultUIThread(null, null, null);
@@ -115,7 +118,7 @@ public class DetailActivity extends AppCompatActivity implements MovieDetailAdap
     }
 
     private void setupViewModel(@NonNull final Movie pulledMovie, @Nullable final List<Review> reviews, @Nullable final List<Video> videos) {
-        AddFavoriteViewModelFactory factory = new AddFavoriteViewModelFactory(dataBase, pulledMovie);
+        AddFavoriteViewModelFactory factory = new AddFavoriteViewModelFactory(dataBase, pulledMovie.getMovieId());
         final AddFavoriteViewModel viewModel = ViewModelProviders.of(this, factory).get(AddFavoriteViewModel.class);
         viewModel.getMovieLiveData().observe(this, new Observer<Movie>() {
             @Override
@@ -131,7 +134,7 @@ public class DetailActivity extends AppCompatActivity implements MovieDetailAdap
     }
 
     private void storeFavoriteMovie(@NonNull final Movie movieToStore) {
-        AddFavoriteViewModelFactory factory = new AddFavoriteViewModelFactory(dataBase, movieToStore);
+        AddFavoriteViewModelFactory factory = new AddFavoriteViewModelFactory(dataBase, movieToStore.getMovieId());
         final AddFavoriteViewModel favoriteViewModel = ViewModelProviders.of(this, factory).get(AddFavoriteViewModel.class);
         favoriteViewModel.getMovieLiveData().observe(this, new Observer<Movie>() {
             @Override
@@ -149,6 +152,15 @@ public class DetailActivity extends AppCompatActivity implements MovieDetailAdap
                         }
                     }
                 });
+            }
+        });
+        favoriteViewModel.getMovieLiveData().observe(this, new Observer<Movie>() {
+            @Override
+            public void onChanged(@Nullable Movie movie) {
+                Log.d(TAG, "storeFavoriteMovie(2): Receiving data base update from movie = [" + (movie == null ? "null" : movie.getTitle()) + "]");
+                if(movie != null) {
+                    DetailActivity.this.movie = movie;
+                }
             }
         });
     }

@@ -11,8 +11,8 @@ public class AddFavoriteViewModel extends ViewModel {
     @NonNull
     private LiveData<Movie> movieLiveData;
 
-    public AddFavoriteViewModel(@NonNull AppDataBase dataBase, @NonNull Movie movie) {
-        movieLiveData = dataBase.movieDao().getMovie(movie.getMovieId());
+    public AddFavoriteViewModel(@NonNull AppDataBase dataBase, int movieId) {
+        movieLiveData = dataBase.movieDao().getMovie(movieId);
     }
 
     @NonNull

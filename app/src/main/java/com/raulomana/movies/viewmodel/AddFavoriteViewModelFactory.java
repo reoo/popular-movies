@@ -5,23 +5,21 @@ import android.arch.lifecycle.ViewModelProvider;
 import android.support.annotation.NonNull;
 
 import com.raulomana.movies.db.AppDataBase;
-import com.raulomana.movies.model.Movie;
 
 public class AddFavoriteViewModelFactory extends ViewModelProvider.NewInstanceFactory {
 
     @NonNull
     private AppDataBase dataBase;
-    @NonNull
-    private Movie movie;
+    private int movieId;
 
-    public AddFavoriteViewModelFactory(@NonNull AppDataBase dataBase, @NonNull Movie movie) {
+    public AddFavoriteViewModelFactory(@NonNull AppDataBase dataBase, int movieId) {
         this.dataBase = dataBase;
-        this.movie = movie;
+        this.movieId = movieId;
     }
 
     @NonNull
     @Override
     public <T extends ViewModel> T create(@NonNull Class<T> modelClass) {
-        return (T) new AddFavoriteViewModel(dataBase, movie);
+        return (T) new AddFavoriteViewModel(dataBase, movieId);
     }
 }

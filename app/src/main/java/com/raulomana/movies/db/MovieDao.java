@@ -7,7 +7,6 @@ import android.arch.persistence.room.OnConflictStrategy;
 import android.arch.persistence.room.Query;
 import android.arch.persistence.room.Update;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 
 import com.raulomana.movies.model.Movie;
 
@@ -16,17 +15,14 @@ import java.util.List;
 @Dao
 public interface MovieDao {
 
-    @Query("SELECT * FROM movie WHERE id = :movieId")
+    @Query("SELECT * FROM movie WHERE movieId = :movieId")
     LiveData<Movie> getMovie(int movieId);
-
-    @Query("SELECT * FROM movie")
-    LiveData<List<Movie>> getAll();
 
     @Insert
     void save(@NonNull Movie movie);
 
     @Update(onConflict = OnConflictStrategy.REPLACE)
-    int update(@NonNull Movie movie);
+    void update(@NonNull Movie movie);
 
     @Query("SELECT * FROM movie WHERE favorite ORDER BY popularity DESC")
     LiveData<List<Movie>> getAllFavorites();
