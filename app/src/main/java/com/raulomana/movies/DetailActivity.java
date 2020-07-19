@@ -11,6 +11,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.widget.TextView;
 import android.widget.ViewAnimator;
 
@@ -36,7 +38,12 @@ public class DetailActivity extends AppCompatActivity implements MovieDetailAdap
     private RecyclerView itemsList;
     private TextView title;
 
+    @Nullable
+    private MovieDetailAdapter adapter;
+
+    @NonNull
     private AppDataBase dataBase;
+    @Nullable
     private Movie movie;
 
     @Override
@@ -63,6 +70,35 @@ public class DetailActivity extends AppCompatActivity implements MovieDetailAdap
     }
 
     @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.movie_detail, menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if(R.id.menu_movie_detail_share == item.getItemId()) {
+            if(movie != null && adapter != null) {
+                List<Video> videos = adapter.getVideos();
+                if(videos != null && !videos.isEmpty()) {
+                    Video video = videos.get(0);
+                    Intent intent = new Intent(Intent.ACTION_SEND);
+                    intent.putExtra(Intent.EXTRA_TEXT, movie.getTitle() + "\n" + video.getUrl());
+                    intent.setType("text/plain");
+                    if(intent.resolveActivity(getPackageManager()) != null) {
+                        startActivity(intent);
+                    }
+                } else {
+                    item.setVisible(false);
+                }
+            }
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+
+    }
+
+    @Override
     public void onFavoriteClick(@NonNull final Movie movie) {
         movie.setFavorite(!movie.isFavorite());
         storeFavoriteMovie(movie);
@@ -83,13 +119,18 @@ public class DetailActivity extends AppCompatActivity implements MovieDetailAdap
         AppExecutors.getInstance().networkIO().execute(new Runnable() {
             @Override
             public void run() {
-                Movie pulledMovie = MovieAPIUtils.getMovie(movieId);
-                List<Review> reviews = MovieAPIUtils.getReviews(movieId);
-                List<Video> videos = MovieAPIUtils.getVideos(movieId);
+                final Movie pulledMovie = MovieAPIUtils.getMovie(movieId);
+                final List<Review> reviews = MovieAPIUtils.getReviews(movieId);
+                final List<Video> videos = MovieAPIUtils.getVideos(movieId);
 
                 if(pulledMovie != null) {
                     DetailActivity.this.movie = pulledMovie;
-                    setupViewModel(pulledMovie, reviews, videos);
+                    AppExecutors.getInstance().mainThread().execute(new Runnable() {
+                        @Override
+                        public void run() {
+                            setupViewModel(pulledMovie, reviews, videos);
+                        }
+                    });
                 } else {
                     showResultUIThread(null, null, null);
                 }
@@ -114,7 +155,8 @@ public class DetailActivity extends AppCompatActivity implements MovieDetailAdap
     private void bindMovie(@NonNull final Movie movie, @Nullable List<Review> reviews, @Nullable List<Video> videos) {
         title.setText(movie.getTitle());
         itemsList.setLayoutManager(new LinearLayoutManager(this));
-        itemsList.setAdapter(new MovieDetailAdapter(movie, reviews, videos, this));
+        adapter = new MovieDetailAdapter(movie, reviews, videos, this);
+        itemsList.setAdapter(adapter);
     }
 
     private void setupViewModel(@NonNull final Movie pulledMovie, @Nullable final List<Review> reviews, @Nullable final List<Video> videos) {

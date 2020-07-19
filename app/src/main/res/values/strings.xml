@@ -11,4 +11,5 @@
     <string name="detail_item_un_favorite_action">Remove from\nFavorites</string>
     <string name="detail_item_videos_header_title">Trailers:</string>
     <string name="detail_item_reviews_header_title">Reviews</string>
+    <string name="menu_movie_detail_share">Share</string>
 </resources>

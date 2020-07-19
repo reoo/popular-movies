@@ -64,6 +64,11 @@ public class MovieDetailAdapter extends RecyclerView.Adapter<MovieDetailAdapter.
         }
     }
 
+    @Nullable
+    public List<Video> getVideos() {
+        return videos;
+    }
+
     @Override
     public int getItemViewType(int position) {
         return positionToLayout.get(position);
